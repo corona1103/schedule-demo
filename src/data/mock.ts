@@ -108,6 +108,7 @@ export interface Schedule {
   id: string;
   subjectId: string;
   teacherId: string;
+  date: string; // YYYY-MM-DD 格式
   dayOfWeek: number; // 1-7
   startTime: string; // HH:mm 格式
   endTime: string;   // HH:mm 格式
@@ -116,12 +117,23 @@ export interface Schedule {
   orgIds: string[];
 }
 
+// 获取本周的日期（用于生成示例数据）
+const getThisWeekDate = (dayOfWeek: number): string => {
+  const today = new Date();
+  const currentDay = today.getDay() || 7; // 将周日的 0 转为 7
+  const diff = dayOfWeek - currentDay;
+  const targetDate = new Date(today);
+  targetDate.setDate(today.getDate() + diff);
+  return targetDate.toISOString().split('T')[0];
+};
+
 // 示例课程安排
 export const schedules: Schedule[] = [
   {
     id: '1',
     subjectId: '1',
     teacherId: '1',
+    date: getThisWeekDate(1),
     dayOfWeek: 1,
     startTime: '08:00',
     endTime: '08:45',
@@ -133,6 +145,7 @@ export const schedules: Schedule[] = [
     id: '2',
     subjectId: '2',
     teacherId: '3',
+    date: getThisWeekDate(1),
     dayOfWeek: 1,
     startTime: '08:00',
     endTime: '08:45',
@@ -144,6 +157,7 @@ export const schedules: Schedule[] = [
     id: '3',
     subjectId: '3',
     teacherId: '4',
+    date: getThisWeekDate(1),
     dayOfWeek: 1,
     startTime: '09:00',
     endTime: '09:45',
@@ -155,6 +169,7 @@ export const schedules: Schedule[] = [
     id: '4',
     subjectId: '4',
     teacherId: '5',
+    date: getThisWeekDate(2),
     dayOfWeek: 2,
     startTime: '14:00',
     endTime: '15:30',

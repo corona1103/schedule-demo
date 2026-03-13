@@ -8,7 +8,8 @@ import type { Schedule } from '@/data/mock';
 
 interface ScheduleTableProps {
   schedules: Schedule[];
-  onAddClick: (dayOfWeek: number) => void;
+  currentWeekStart: Date; // 当前周的周一日期
+  onAddClick: (dayOfWeek: number, date: string) => void;
   onEditClick: (schedule: Schedule) => void;
   onDeleteClick: (scheduleId: string) => void;
 }
@@ -25,8 +26,26 @@ const END_HOUR = 20;  // 20:00 结束
 const HOUR_HEIGHT = 60; // 每小时高度（像素）
 const TOTAL_MINUTES = (END_HOUR - START_HOUR) * 60;
 
+// 格式化日期为 YYYY-MM-DD
+const formatDate = (date: Date): string => {
+  return date.toISOString().split('T')[0];
+};
+
+// 获取本周某天的日期
+const getDateForDayOfWeek = (weekStart: Date, dayOfWeek: number): string => {
+  const date = new Date(weekStart);
+  date.setDate(weekStart.getDate() + dayOfWeek - 1);
+  return formatDate(date);
+};
+
+// 格式化日期显示 (MM/DD)
+const formatDateDisplay = (date: Date): string => {
+  return `${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getDate().toString().padStart(2, '0')}`;
+};
+
 export default function ScheduleTable({
   schedules,
+  currentWeekStart,
   onAddClick,
   onEditClick,
   onDeleteClick,
@@ -56,7 +75,8 @@ export default function ScheduleTable({
 
   // 获取某天的所有课程，并计算重叠分组
   const getSchedulesForDay = (dayOfWeek: number) => {
-    const daySchedules = schedules.filter(s => s.dayOfWeek === dayOfWeek);
+    const targetDate = getDateForDayOfWeek(currentWeekStart, dayOfWeek);
+    const daySchedules = schedules.filter(s => s.date === targetDate);
 
     // 按开始时间排序
     daySchedules.sort((a, b) => timeToMinutes(a.startTime) - timeToMinutes(b.startTime));
@@ -146,11 +166,16 @@ export default function ScheduleTable({
         <div className="w-16 flex-shrink-0 p-3 text-center text-gray-500 font-medium border-r">
           时间
         </div>
-        {weekDays.slice(0, 5).map(day => (
-          <div key={day.id} className="flex-1 p-3 text-center text-gray-700 font-medium border-r last:border-r-0">
-            {day.name}
-          </div>
-        ))}
+        {weekDays.slice(0, 5).map(day => {
+          const date = new Date(currentWeekStart);
+          date.setDate(currentWeekStart.getDate() + day.id - 1);
+          return (
+            <div key={day.id} className="flex-1 p-3 text-center text-gray-700 font-medium border-r last:border-r-0">
+              <div>{day.name}</div>
+              <div className="text-xs text-gray-400">{formatDateDisplay(date)}</div>
+            </div>
+          );
+        })}
       </div>
 
       {/* 时间轴主体 */}
@@ -190,7 +215,7 @@ export default function ScheduleTable({
               {/* 添加按钮 */}
               <div
                 className="absolute inset-0 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer z-0"
-                onClick={() => onAddClick(day.id)}
+                onClick={() => onAddClick(day.id, getDateForDayOfWeek(currentWeekStart, day.id))}
               >
                 <div className="bg-blue-50 border-2 border-dashed border-blue-200 rounded-lg p-4">
                   <PlusOutlined className="text-blue-400 text-xl" />

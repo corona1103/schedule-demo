@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Modal, Form, Select, TimePicker, Tag, Button, Space, Input, message, Divider } from 'antd';
+import { Modal, Form, Select, TimePicker, Tag, Button, Space, Input, message, Divider, DatePicker } from 'antd';
 import { UserAddOutlined, SearchOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { subjects, teachers, weekDays, organizations, classes, students, findTeacherByEmployeeNo } from '@/data/mock';
@@ -14,6 +14,7 @@ interface ScheduleFormProps {
   onSubmit: (schedule: Omit<Schedule, 'id'>) => void;
   initialData?: Schedule | null;
   externalExperts?: ExternalExpert[];
+  presetDate?: string | null; // 预设日期 (YYYY-MM-DD)
 }
 
 export default function ScheduleForm({
@@ -22,6 +23,7 @@ export default function ScheduleForm({
   onSubmit,
   initialData,
   externalExperts = [],
+  presetDate,
 }: ScheduleFormProps) {
   const [form] = Form.useForm();
   const [studentSelectorOpen, setStudentSelectorOpen] = useState(false);
@@ -48,6 +50,7 @@ export default function ScheduleForm({
         form.setFieldsValue({
           subjectId: initialData.subjectId,
           teacherId: initialData.teacherId,
+          date: dayjs(initialData.date),
           dayOfWeek: initialData.dayOfWeek,
           timeRange: [
             dayjs(initialData.startTime, 'HH:mm'),
@@ -78,6 +81,10 @@ export default function ScheduleForm({
         }
       } else {
         form.resetFields();
+        // 如果有预设日期，设置它
+        if (presetDate) {
+          form.setFieldValue('date', dayjs(presetDate));
+        }
         setSelection({ orgIds: [], classIds: [], studentIds: [] });
         setFilteredTeachers(teachers);
         setFilteredExperts(activeExperts);
@@ -85,7 +92,7 @@ export default function ScheduleForm({
       }
       setEmployeeNoInput('');
     }
-  }, [open, initialData, form, externalExperts]);
+  }, [open, initialData, form, externalExperts, presetDate]);
 
   const handleSubjectChange = (subjectId: string) => {
     const filtered = teachers.filter(t => t.subjects.includes(subjectId));
@@ -139,10 +146,12 @@ export default function ScheduleForm({
   const handleSubmit = () => {
     form.validateFields().then(values => {
       const [startTime, endTime] = values.timeRange;
+      const selectedDate = values.date as dayjs.Dayjs;
       onSubmit({
         subjectId: values.subjectId,
         teacherId: values.teacherId,
-        dayOfWeek: values.dayOfWeek,
+        date: selectedDate.format('YYYY-MM-DD'),
+        dayOfWeek: selectedDate.day() || 7, // 周日为 0，转换为 7
         startTime: startTime.format('HH:mm'),
         endTime: endTime.format('HH:mm'),
         ...selection,
@@ -333,16 +342,14 @@ export default function ScheduleForm({
           </Form.Item>
 
           <Form.Item
-            name="dayOfWeek"
-            label="星期"
-            rules={[{ required: true, message: '请选择星期' }]}
+            name="date"
+            label="讲座日期"
+            rules={[{ required: true, message: '请选择日期' }]}
           >
-            <Select
-              placeholder="选择星期"
-              options={weekDays.map(d => ({
-                value: d.id,
-                label: d.name,
-              }))}
+            <DatePicker
+              placeholder="选择日期"
+              style={{ width: '100%' }}
+              format="YYYY-MM-DD"
             />
           </Form.Item>
 

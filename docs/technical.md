@@ -68,7 +68,8 @@ interface Schedule {
   id: string;
   subjectId: string;     // 学科ID
   teacherId: string;     // 讲师ID（内部或外部）
-  dayOfWeek: number;     // 1-7 对应周一到周日
+  date: string;          // YYYY-MM-DD 格式，讲座日期
+  dayOfWeek: number;     // 1-7 对应周一到周日（根据date自动计算）
   startTime: string;     // HH:mm 格式
   endTime: string;       // HH:mm 格式
   studentIds: string[];  // 选中的学生ID列表
@@ -92,10 +93,23 @@ interface SelectionResult {
 
 **功能**：以周视图时间轴形式展示讲座
 
+**Props**：
+```typescript
+interface ScheduleTableProps {
+  schedules: Schedule[];
+  currentWeekStart: Date;  // 当前周的周一日期
+  onAddClick: (dayOfWeek: number, date: string) => void;
+  onEditClick: (schedule: Schedule) => void;
+  onDeleteClick: (scheduleId: string) => void;
+}
+```
+
 **关键实现**：
 - 时间轴布局：8:00-20:00，每小时60px高度
 - 重叠讲座处理：自动计算重叠并并排显示
 - 动态定位：根据时间计算讲座卡片的 top/height/width/left
+- **根据 date 字段筛选当前周的讲座**
+- **表头显示星期和具体日期**
 
 **重叠算法**：
 ```typescript
@@ -114,6 +128,23 @@ while (usedColumns.has(column)) column++;
 ### 4.2 ScheduleForm（讲座表单）
 
 **功能**：新建/编辑讲座
+
+**Props**：
+```typescript
+interface ScheduleFormProps {
+  open: boolean;
+  onClose: () => void;
+  onSubmit: (schedule: Omit<Schedule, 'id'>) => void;
+  initialData?: Schedule | null;
+  externalExperts?: ExternalExpert[];
+  presetDate?: string | null;  // 预设日期 (YYYY-MM-DD)
+}
+```
+
+**日期处理**：
+- 使用 DatePicker 选择讲座日期
+- 提交时自动计算 dayOfWeek（周日为 0 转换为 7）
+- 支持预设日期（从周视图点击添加时传入）
 
 **讲师选择逻辑**：
 1. 根据选择的学科过滤内部老师
@@ -159,6 +190,31 @@ const [schedules, setSchedules] = useState<Schedule[]>(initialSchedules);
 const [experts, setExperts] = useState<ExternalExpert[]>(initialExperts);
 const [formOpen, setFormOpen] = useState(false);
 const [editingSchedule, setEditingSchedule] = useState<Schedule | null>(null);
+
+// 周切换相关状态
+const [currentWeekStart, setCurrentWeekStart] = useState<Date>(() => getWeekStart(new Date()));
+const [presetDate, setPresetDate] = useState<string | null>(null);
+```
+
+**周切换相关函数**：
+```typescript
+// 获取某个日期所在周的周一
+const getWeekStart = (date: Date): Date => {
+  const d = new Date(date);
+  const day = d.getDay() || 7;
+  d.setDate(d.getDate() - day + 1);
+  d.setHours(0, 0, 0, 0);
+  return d;
+};
+
+// 计算当前周的讲座
+const weekSchedules = useMemo(() => {
+  const weekEnd = new Date(currentWeekStart);
+  weekEnd.setDate(currentWeekStart.getDate() + 6);
+  const startStr = currentWeekStart.toISOString().split('T')[0];
+  const endStr = weekEnd.toISOString().split('T')[0];
+  return schedules.filter(s => s.date >= startStr && s.date <= endStr);
+}, [schedules, currentWeekStart]);
 ```
 
 **注意**：当前为静态Demo，数据不持久化，刷新后重置。
