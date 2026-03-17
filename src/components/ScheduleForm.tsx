@@ -48,6 +48,7 @@ export default function ScheduleForm({
 
       if (initialData) {
         form.setFieldsValue({
+          title: initialData.title,
           subjectId: initialData.subjectId,
           teacherId: initialData.teacherId,
           date: dayjs(initialData.date),
@@ -148,6 +149,7 @@ export default function ScheduleForm({
       const [startTime, endTime] = values.timeRange;
       const selectedDate = values.date as dayjs.Dayjs;
       onSubmit({
+        title: values.title,
         subjectId: values.subjectId,
         teacherId: values.teacherId,
         date: selectedDate.format('YYYY-MM-DD'),
@@ -233,6 +235,14 @@ export default function ScheduleForm({
           layout="vertical"
           className="mt-4"
         >
+          <Form.Item
+            name="title"
+            label="讲座标题"
+            rules={[{ required: true, message: '请输入讲座标题' }]}
+          >
+            <Input placeholder="请输入讲座标题" maxLength={50} showCount />
+          </Form.Item>
+
           <Form.Item
             name="subjectId"
             label="学科"

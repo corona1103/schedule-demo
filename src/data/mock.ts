@@ -90,6 +90,7 @@ export const subjects = [
   { id: '3', name: '英语', color: '#faad14' },
   { id: '4', name: '物理', color: '#722ed1' },
   { id: '5', name: '化学', color: '#eb2f96' },
+  { id: '99', name: '其他', color: '#8c8c8c' },
 ];
 
 // 星期
@@ -106,6 +107,7 @@ export const weekDays = [
 // 课程安排类型
 export interface Schedule {
   id: string;
+  title: string; // 讲座标题
   subjectId: string;
   teacherId: string;
   date: string; // YYYY-MM-DD 格式
@@ -131,6 +133,7 @@ const getThisWeekDate = (dayOfWeek: number): string => {
 export const schedules: Schedule[] = [
   {
     id: '1',
+    title: '高考数学冲刺讲座',
     subjectId: '1',
     teacherId: '1',
     date: getThisWeekDate(1),
@@ -143,6 +146,7 @@ export const schedules: Schedule[] = [
   },
   {
     id: '2',
+    title: '古诗词鉴赏技巧',
     subjectId: '2',
     teacherId: '3',
     date: getThisWeekDate(1),
@@ -155,6 +159,7 @@ export const schedules: Schedule[] = [
   },
   {
     id: '3',
+    title: '英语听力提升专题',
     subjectId: '3',
     teacherId: '4',
     date: getThisWeekDate(1),
@@ -167,6 +172,7 @@ export const schedules: Schedule[] = [
   },
   {
     id: '4',
+    title: '物理实验方法讲解',
     subjectId: '4',
     teacherId: '5',
     date: getThisWeekDate(2),

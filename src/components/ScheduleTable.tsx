@@ -245,7 +245,7 @@ export default function ScheduleTable({
                     >
                       <div className="flex justify-between items-start">
                         <div className="font-medium text-sm truncate" style={{ color: subject?.color }}>
-                          {subject?.name}
+                          {schedule.title || subject?.name}
                         </div>
                         <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
                           <Tooltip title="编辑">
@@ -271,7 +271,7 @@ export default function ScheduleTable({
                         </div>
                       </div>
                       <div className="text-xs text-gray-500 mt-0.5 truncate">
-                        {teacher?.name}
+                        {subject?.name} · {teacher?.name}
                       </div>
                       <div className="text-xs text-gray-400 truncate">
                         {schedule.startTime}-{schedule.endTime}
